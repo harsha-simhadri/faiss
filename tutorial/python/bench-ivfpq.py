@@ -16,7 +16,7 @@ ndimq, = struct.unpack('i', queryfile.read(4))
 
 if ndimq != ndim:
         print("Error: Dimensions unequal")
-            quit()
+        quit()
 
 print(npts, ndim, nq)
 
