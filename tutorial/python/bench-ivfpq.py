@@ -7,6 +7,10 @@ import numpy as np
 import struct
 import sys
 
+if len(sys.argv) != 6:
+        print("Usage:\n bench-ivfpq.py base_data.bin query_data.bin M nprobe results.bin")
+        quit()
+
 datafile=open(sys.argv[1], "rb")
 queryfile=open(sys.argv[2], "rb")
 npts,  = struct.unpack('i', datafile.read(4))
@@ -30,7 +34,7 @@ queries = np.reshape(queries, (nq, ndim))
 import faiss                   # make faiss available
 
 ncentroids = 5000
-m = 8
+m = int(sys.argv[3])
 quantizer = faiss.IndexFlatL2(ndim)  # this remains the same
 index = faiss.IndexIVFPQ(quantizer, ndim, ncentroids, m, 8)
 index.train(data)
@@ -43,9 +47,10 @@ k = 100                            # we want to see 4 nearest neighbors
 #print(I)
 #print(D)
 
-index.nprobe=30
+index.nprobe=int(sys.argv[4])
+print(index.nprobe)
 D, I = index.search(queries, k)     # actual search
-gtfile=open(sys.argv[3], "wb")
+gtfile=open(sys.argv[5], "wb")
 I = np.reshape(I, nq*k)
 D = np.reshape(D, nq*k)
 gtfile.write(struct.pack('i',nq))
