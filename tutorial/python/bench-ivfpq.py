@@ -60,8 +60,8 @@ if rerank == 1:
         Dtmp, Itmp = index.search(queries, rerank_size) 
         D = np.zeros((nq,k), dtype=float)
         I = np.zeros((nq,k), dtype=int)
-        pool = multiprocessing.Pool(processes=64)
-        pool.map(rerank_with_full_vector, range(0,nq))
+        #pool = multiprocessing.Pool(processes=64)
+        #pool.map(rerank_with_full_vector, range(0,nq))
         for q in range(0,nq):
                  rerank_with_full_vector(q)
 else:
