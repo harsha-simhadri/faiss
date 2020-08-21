@@ -8,6 +8,7 @@ import struct
 import sys
 import faiss                   # make faiss available
 import heapq
+import multiprocessing
 
 if len(sys.argv) != 8:
         print("Usage:\n bench-ivfpq.py base_data.bin query_data.bin k M nprobe rerank<0/1> results.bin")
@@ -46,23 +47,23 @@ k = int(sys.argv[3])
 index.nprobe=int(sys.argv[5])
 rerank = int(sys.argv[6])
 
-def dist(v1, v2, dim):
-        ret = 0.0
-        for d in range(0, dim):
-                ret +=  (v1[d] - v2[d]) * (v1[d] - v2[d])
-        return ret
+def rerank_with_full_vector(q):
+        heap = []
+        for i in range(0,rerank_size):
+                heapq.heappush(heap, (np.linalg.norm(data[Itmp[q,i]] - queries[q]), Itmp[q,i]))
+        for j in range(0,k):
+                D[q,j], I[q,j] = heapq.heappop(heap)
+
 
 if rerank == 1:
         rerank_size = 5*k
         Dtmp, Itmp = index.search(queries, rerank_size) 
         D = np.zeros((nq,k), dtype=float)
         I = np.zeros((nq,k), dtype=int)
+        pool = multiprocessing.Pool(processes=64)
+        pool.map(rerank_with_full_vector, range(0,nq))
         for q in range(0,nq):
-                heap = []
-                for i in range(0,rerank_size):
-                        heapq.heappush(heap, (np.linalg.norm(data[Itmp[q,i]] - queries[q]), Itmp[q,i]))
-                for j in range(0,k):
-                        D[q,j], I[q,j] = heapq.heappop(heap)
+                 rerank_with_full_vector(q)
 else:
         if rerank != 0:
                 print("ERROR: rerank must be 0 or 1. Defaulting to rerank=0")
